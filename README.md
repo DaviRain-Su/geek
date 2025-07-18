@@ -11,6 +11,9 @@ A Python-based crawler for extracting articles from WeChat public accounts (微�
 - 📈 Crawl job tracking and statistics
 - 🚀 Async/await for efficient concurrent crawling
 - 🎯 Web UI for database management (Mongo Express & Redis Commander)
+- 📝 **Markdown Export** - Export articles to organized Markdown files with auto-tagging
+- 🏷️ **Smart Classification** - AI-powered article categorization and tagging
+- 📊 **Analytics Dashboard** - Comprehensive data analysis and visualization
 
 ## 🚀 Quick Start
 
@@ -98,7 +101,92 @@ python main.py article "https://mp.weixin.qq.com/s/..."
 
 # View statistics
 python main.py stats
+
+# Export to Markdown (NEW!)
+python main.py export --format markdown
+python main.py export --format markdown --limit 100 --output my_articles
+
+# Export to Simple List (NEW!)
+python main.py export --format simple
+python main.py export --format simple --limit 100 --output my_list.md
+
+# Export to Obsidian (NEW!)
+./scripts/export_obsidian.sh                    # Export index only
+./scripts/export_obsidian.sh --full             # Export all articles
+./scripts/export_obsidian.sh --full --limit 100 # Export first 100 articles
 ```
+
+### 📝 Export Options
+
+#### 1. **Complete Markdown Export**
+Export all articles to organized Markdown files with automatic categorization and tagging:
+
+```bash
+# Quick export using script
+./scripts/export_markdown.sh
+
+# Export with custom options
+./scripts/export_markdown.sh -l 100 -o ~/Documents/articles
+
+# Export using CLI
+python3 main.py export --format markdown --limit 50 --no-author
+```
+
+**Features:**
+- 🏷️ **Auto-tagging** - Smart tags based on content analysis
+- 📂 **Smart categorization** - Automatic classification by topic
+- 📊 **Quality analysis** - Article quality scoring and insights
+- 📅 **Multiple views** - Organized by category, author, and date
+- 🔍 **Rich metadata** - Comprehensive article information
+
+#### 2. **Simple List Export**
+Export all articles to a single Markdown file with simple format: `[title](url) -- description`
+
+```bash
+# Export all articles to single file
+python3 main.py export --format simple
+
+# Quick export using script
+./scripts/export_simple.sh
+
+# Export with custom options
+./scripts/export_simple.sh -l 1000 -o my_articles.md
+```
+
+**Features:**
+- 📋 **Single file** - All articles in one convenient file
+- 🔗 **Clickable links** - Direct links to original articles
+- 📝 **Concise format** - Title, link, and brief description
+- 📊 **Smart sorting** - Sort by date, title, or author
+- 👥 **Group by author** - Optional grouping by author or date
+
+#### 3. **Obsidian Export**
+Export all articles to Obsidian knowledge management system with rich metadata and linking:
+
+```bash
+# Export index only (quick start)
+./scripts/export_obsidian.sh
+
+# Export all articles with full features
+./scripts/export_obsidian.sh --full
+
+# Export with custom options
+./scripts/export_obsidian.sh --full --limit 100 --vault ~/Documents/MyVault
+```
+
+**Features:**
+- 🏷️ **Smart tagging** - Auto-categorization by topic, difficulty, quality
+- 🔗 **Wikilinks** - Connected knowledge graph with bidirectional links
+- 📊 **Dataview queries** - Dynamic content filtering and analytics
+- 📝 **YAML frontmatter** - Rich metadata for each article
+- 👥 **Author notes** - Dedicated pages for each author with statistics
+- 🎨 **Templates** - Consistent formatting and structure
+- 📱 **Mobile ready** - Works perfectly with Obsidian mobile apps
+
+**Export Guides:**
+- [Complete Markdown Export Guide](MARKDOWN_EXPORT_GUIDE.md)
+- [Simple List Export Guide](SIMPLE_EXPORT_GUIDE.md)
+- [Obsidian Export Guide](OBSIDIAN_EXPORT_GUIDE.md)
 
 ### Docker Service Management
 

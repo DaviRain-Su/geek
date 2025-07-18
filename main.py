@@ -2872,7 +2872,12 @@ def main():
     # Export articles command
     export_parser = subparsers.add_parser('export', help='Export articles to file')
     export_parser.add_argument('--account', help='Export articles from specific account')
-    export_parser.add_argument('--format', choices=['txt', 'json', 'csv'], default='txt', help='Export format (default: txt)')
+    export_parser.add_argument('--format', choices=['txt', 'json', 'csv', 'markdown', 'simple'], default='txt', help='Export format (default: txt)')
+    export_parser.add_argument('--output', '-o', help='Output directory for markdown export')
+    export_parser.add_argument('--limit', '-l', type=int, help='Limit number of articles to export')
+    export_parser.add_argument('--no-category', action='store_true', help='Do not export by category (markdown only)')
+    export_parser.add_argument('--no-date', action='store_true', help='Do not export by date (markdown only)')
+    export_parser.add_argument('--no-author', action='store_true', help='Do not export by author (markdown only)')
     
     # Import JSON to database command
     import_parser = subparsers.add_parser('import', help='Import JSON data to database')
@@ -3041,10 +3046,35 @@ def main():
             url=args.url
         ))
     elif args.command == 'export':
-        asyncio.run(export_articles(
-            account_name=args.account,
-            format_type=args.format
-        ))
+        if args.format == 'markdown':
+            # 使用新的 Markdown 导出器
+            from export_to_markdown import MarkdownExporter
+            
+            output_dir = args.output or 'export/markdown'
+            exporter = MarkdownExporter(output_dir=output_dir)
+            
+            exporter.export_all(
+                by_category=not args.no_category,
+                by_date=not args.no_date,
+                by_author=not args.no_author,
+                limit=args.limit
+            )
+        elif args.format == 'simple':
+            # 使用简单列表导出器
+            from export_simple_list import SimpleListExporter
+            
+            output_file = args.output or 'all_articles.md'
+            exporter = SimpleListExporter()
+            
+            exporter.export_to_single_file(
+                output_file=output_file,
+                limit=args.limit
+            )
+        else:
+            asyncio.run(export_articles(
+                account_name=args.account,
+                format_type=args.format
+            ))
     elif args.command == 'import':
         asyncio.run(import_json_to_database(
             input_file=args.file,

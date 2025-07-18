@@ -30,6 +30,10 @@
                         <i class="fas fa-chart-bar"></i>
                         统计信息
                     </a>
+                    <a href="#analytics" class="nav-link" data-section="analytics">
+                        <i class="fas fa-chart-line"></i>
+                        数据分析
+                    </a>
                     <a href="#about" class="nav-link" data-section="about">
                         <i class="fas fa-info-circle"></i>
                         关于
@@ -167,6 +171,111 @@
                         <h3>✍️ 热门作者</h3>
                         <div id="top-authors-list" class="top-list">
                             <!-- 热门作者列表将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 数据分析部分 -->
+            <section id="analytics" class="section">
+                <h2>📊 数据分析</h2>
+                
+                <div class="analytics-container">
+                    <!-- 分析工具栏 -->
+                    <div class="analytics-toolbar">
+                        <div class="time-selector">
+                            <label for="analytics-days">分析周期：</label>
+                            <select id="analytics-days">
+                                <option value="7">最近7天</option>
+                                <option value="30" selected>最近30天</option>
+                                <option value="60">最近60天</option>
+                                <option value="90">最近90天</option>
+                            </select>
+                        </div>
+                        <button id="refresh-analytics" class="btn btn-primary">
+                            <i class="fas fa-sync-alt"></i>
+                            刷新分析
+                        </button>
+                    </div>
+
+                    <!-- 分析模块容器 -->
+                    <div class="analytics-modules">
+                        <!-- 技术趋势分析 -->
+                        <div class="analytics-module">
+                            <div class="module-header">
+                                <h3><i class="fas fa-chart-line"></i> 技术趋势分析</h3>
+                                <div class="module-status" id="trends-status">
+                                    <i class="fas fa-spinner fa-spin"></i> 加载中...
+                                </div>
+                            </div>
+                            <div class="module-content" id="trends-content">
+                                <!-- 趋势分析结果 -->
+                            </div>
+                        </div>
+
+                        <!-- 作者活跃度分析 -->
+                        <div class="analytics-module">
+                            <div class="module-header">
+                                <h3><i class="fas fa-users"></i> 作者活跃度分析</h3>
+                                <div class="module-status" id="authors-status">
+                                    <i class="fas fa-spinner fa-spin"></i> 加载中...
+                                </div>
+                            </div>
+                            <div class="module-content" id="authors-content">
+                                <!-- 作者分析结果 -->
+                            </div>
+                        </div>
+
+                        <!-- 内容质量评估 -->
+                        <div class="analytics-module">
+                            <div class="module-header">
+                                <h3><i class="fas fa-star"></i> 内容质量评估</h3>
+                                <div class="module-status" id="quality-status">
+                                    <i class="fas fa-spinner fa-spin"></i> 加载中...
+                                </div>
+                            </div>
+                            <div class="module-content" id="quality-content">
+                                <!-- 质量评估结果 -->
+                            </div>
+                        </div>
+
+                        <!-- 标签分析 -->
+                        <div class="analytics-module">
+                            <div class="module-header">
+                                <h3><i class="fas fa-tags"></i> 智能标签分析</h3>
+                                <div class="module-status" id="tags-status">
+                                    <i class="fas fa-spinner fa-spin"></i> 加载中...
+                                </div>
+                            </div>
+                            <div class="module-content" id="tags-content">
+                                <!-- 标签分析结果 -->
+                            </div>
+                        </div>
+
+                        <!-- 发布模式分析 -->
+                        <div class="analytics-module">
+                            <div class="module-header">
+                                <h3><i class="fas fa-calendar-alt"></i> 发布模式分析</h3>
+                                <div class="module-status" id="publishing-status">
+                                    <i class="fas fa-spinner fa-spin"></i> 加载中...
+                                </div>
+                            </div>
+                            <div class="module-content" id="publishing-content">
+                                <!-- 发布模式分析结果 -->
+                            </div>
+                        </div>
+
+                        <!-- 综合报告 -->
+                        <div class="analytics-module full-width">
+                            <div class="module-header">
+                                <h3><i class="fas fa-file-alt"></i> 综合分析报告</h3>
+                                <div class="module-status" id="report-status">
+                                    <i class="fas fa-spinner fa-spin"></i> 加载中...
+                                </div>
+                            </div>
+                            <div class="module-content" id="report-content">
+                                <!-- 综合报告结果 -->
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -12,6 +12,9 @@ from datetime import datetime
 import json
 from storage.database import DatabaseManager
 from utils.logger import logger
+from analytics.trend_analyzer import TrendAnalyzer
+from analytics.tag_extractor import TagExtractor
+from analytics.content_evaluator import ContentEvaluator
 
 # 创建FastAPI应用
 app = FastAPI(
@@ -382,6 +385,240 @@ async def get_accounts():
         logger.error(f"获取账号列表失败: {str(e)}")
         raise HTTPException(status_code=500, detail=f"获取账号列表失败: {str(e)}")
 
+# Analytics API Endpoints
+
+@app.get("/analytics/trends")
+async def get_technology_trends(
+    days: int = Query(30, ge=1, le=365, description="分析天数，默认30天")
+):
+    """
+    获取技术趋势分析
+    
+    参数:
+    - days: 分析时间范围（天数），默认30天，最大365天
+    """
+    try:
+        analyzer = TrendAnalyzer()
+        results = analyzer.analyze_technology_trends(days)
+        
+        if "error" in results:
+            raise HTTPException(status_code=500, detail=results["error"])
+        
+        return {
+            "success": True,
+            "data": results,
+            "message": f"技术趋势分析完成（最近{days}天）"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"技术趋势分析失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"技术趋势分析失败: {str(e)}")
+
+@app.get("/analytics/authors")
+async def get_author_activity(
+    days: int = Query(30, ge=1, le=365, description="分析天数，默认30天")
+):
+    """
+    获取作者活跃度分析
+    
+    参数:
+    - days: 分析时间范围（天数），默认30天，最大365天
+    """
+    try:
+        analyzer = TrendAnalyzer()
+        results = analyzer.analyze_author_activity(days)
+        
+        if "error" in results:
+            raise HTTPException(status_code=500, detail=results["error"])
+        
+        return {
+            "success": True,
+            "data": results,
+            "message": f"作者活跃度分析完成（最近{days}天）"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"作者活跃度分析失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"作者活跃度分析失败: {str(e)}")
+
+@app.get("/analytics/publishing")
+async def get_publication_patterns(
+    days: int = Query(90, ge=1, le=365, description="分析天数，默认90天")
+):
+    """
+    获取发布模式分析
+    
+    参数:
+    - days: 分析时间范围（天数），默认90天，最大365天
+    """
+    try:
+        analyzer = TrendAnalyzer()
+        results = analyzer.analyze_publication_patterns(days)
+        
+        if "error" in results:
+            raise HTTPException(status_code=500, detail=results["error"])
+        
+        return {
+            "success": True,
+            "data": results,
+            "message": f"发布模式分析完成（最近{days}天）"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"发布模式分析失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"发布模式分析失败: {str(e)}")
+
+@app.get("/analytics/report")
+async def get_comprehensive_report(
+    days: int = Query(30, ge=1, le=365, description="分析天数，默认30天")
+):
+    """
+    获取综合分析报告
+    
+    参数:
+    - days: 分析时间范围（天数），默认30天，最大365天
+    """
+    try:
+        analyzer = TrendAnalyzer()
+        results = analyzer.get_comprehensive_trends(days)
+        
+        if "error" in results:
+            raise HTTPException(status_code=500, detail=results["error"])
+        
+        return {
+            "success": True,
+            "data": results,
+            "message": f"综合分析报告生成完成（最近{days}天）"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"综合分析报告生成失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"综合分析报告生成失败: {str(e)}")
+
+@app.get("/analytics/tags/extract")
+async def extract_article_tags(
+    limit: Optional[int] = Query(None, ge=1, le=1000, description="处理文章数量限制")
+):
+    """
+    提取文章标签
+    
+    参数:
+    - limit: 处理文章数量限制，默认处理所有文章
+    """
+    try:
+        extractor = TagExtractor()
+        results = extractor.batch_tag_articles(limit=limit)
+        
+        if "error" in results:
+            raise HTTPException(status_code=500, detail=results["error"])
+        
+        return {
+            "success": True,
+            "data": results,
+            "message": f"标签提取完成，处理了{results['summary']['successfully_tagged']}篇文章"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"标签提取失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"标签提取失败: {str(e)}")
+
+@app.get("/analytics/tags/trends")
+async def get_tag_trends(
+    days: int = Query(30, ge=1, le=365, description="分析天数，默认30天")
+):
+    """
+    获取标签趋势分析
+    
+    参数:
+    - days: 分析时间范围（天数），默认30天，最大365天
+    """
+    try:
+        extractor = TagExtractor()
+        results = extractor.analyze_tag_trends(days)
+        
+        if "error" in results:
+            raise HTTPException(status_code=500, detail=results["error"])
+        
+        return {
+            "success": True,
+            "data": results,
+            "message": f"标签趋势分析完成（最近{days}天）"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"标签趋势分析失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"标签趋势分析失败: {str(e)}")
+
+@app.get("/analytics/quality/evaluate")
+async def evaluate_content_quality(
+    limit: Optional[int] = Query(None, ge=1, le=1000, description="评估文章数量限制")
+):
+    """
+    评估内容质量
+    
+    参数:
+    - limit: 评估文章数量限制，默认评估所有文章
+    """
+    try:
+        evaluator = ContentEvaluator()
+        results = evaluator.batch_evaluate_quality(limit=limit)
+        
+        if "error" in results:
+            raise HTTPException(status_code=500, detail=results["error"])
+        
+        return {
+            "success": True,
+            "data": results,
+            "message": f"内容质量评估完成，评估了{results['summary']['successfully_evaluated']}篇文章"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"内容质量评估失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"内容质量评估失败: {str(e)}")
+
+@app.get("/analytics/quality/insights")
+async def get_quality_insights(
+    min_score: float = Query(0.7, ge=0.0, le=1.0, description="高质量文章最低评分")
+):
+    """
+    获取质量洞察报告
+    
+    参数:
+    - min_score: 高质量文章最低评分（0.0-1.0），默认0.7
+    """
+    try:
+        evaluator = ContentEvaluator()
+        results = evaluator.get_quality_insights(min_quality_score=min_score)
+        
+        if "error" in results:
+            raise HTTPException(status_code=500, detail=results["error"])
+        
+        return {
+            "success": True,
+            "data": results,
+            "message": f"质量洞察报告生成完成（最低评分≥{min_score}）"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"质量洞察报告生成失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"质量洞察报告生成失败: {str(e)}")
+
 @app.get("/health")
 async def health_check():
     """健康检查接口"""
@@ -411,12 +648,20 @@ def run_server(host: str = "127.0.0.1", port: int = 8000, reload: bool = False):
     print(f"📊 交互式文档: http://{host}:{port}/redoc")
     print()
     print(f"🔧 可用端点:")
-    print(f"  GET  /articles           - 获取文章列表")
-    print(f"  GET  /articles/{{id}}      - 获取特定文章")
-    print(f"  GET  /articles/search    - 搜索文章")
-    print(f"  GET  /stats             - 统计信息")
-    print(f"  GET  /accounts          - 账号列表")
-    print(f"  GET  /health            - 健康检查")
+    print(f"  GET  /articles                     - 获取文章列表")
+    print(f"  GET  /articles/{{id}}                - 获取特定文章")
+    print(f"  GET  /articles/search              - 搜索文章")
+    print(f"  GET  /stats                       - 统计信息")
+    print(f"  GET  /accounts                    - 账号列表")
+    print(f"  GET  /analytics/trends            - 技术趋势分析")
+    print(f"  GET  /analytics/authors           - 作者活跃度分析")
+    print(f"  GET  /analytics/publishing        - 发布模式分析")
+    print(f"  GET  /analytics/report            - 综合分析报告")
+    print(f"  GET  /analytics/tags/extract      - 智能标签提取")
+    print(f"  GET  /analytics/tags/trends       - 标签趋势分析")
+    print(f"  GET  /analytics/quality/evaluate  - 内容质量评估")
+    print(f"  GET  /analytics/quality/insights  - 质量洞察报告")
+    print(f"  GET  /health                      - 健康检查")
     print()
     
     try:

@@ -5,6 +5,7 @@
 
 class GeekDailyApp {
     constructor() {
+        console.log('GeekDailyApp constructor called');
         this.currentPage = 1;
         this.articlesPerPage = 20;
         this.currentFilters = {
@@ -89,6 +90,22 @@ class GeekDailyApp {
                 this.closeModal();
             }
         });
+
+        // Analytics事件监听器
+        const refreshAnalyticsBtn = document.getElementById('refresh-analytics');
+        const analyticsDaysSelect = document.getElementById('analytics-days');
+        
+        if (refreshAnalyticsBtn) {
+            refreshAnalyticsBtn.addEventListener('click', () => {
+                this.loadAnalyticsData();
+            });
+        }
+        
+        if (analyticsDaysSelect) {
+            analyticsDaysSelect.addEventListener('change', () => {
+                this.loadAnalyticsData();
+            });
+        }
     }
 
     /**
@@ -109,8 +126,13 @@ class GeekDailyApp {
         const targetSection = document.getElementById(sectionName);
         const targetNavLink = document.querySelector(`[data-section="${sectionName}"]`);
         
+        console.log('Showing section:', sectionName, { targetSection, targetNavLink });
+        
         if (targetSection) {
             targetSection.classList.add('active');
+            console.log('Section activated:', sectionName);
+        } else {
+            console.error('Target section not found:', sectionName);
         }
         
         if (targetNavLink) {
@@ -128,6 +150,13 @@ class GeekDailyApp {
                 break;
             case 'stats':
                 this.loadStatsData();
+                break;
+            case 'analytics':
+                console.log('Switching to analytics section');
+                // 添加小延迟确保DOM完全渲染
+                setTimeout(() => {
+                    this.loadAnalyticsData();
+                }, 100);
                 break;
         }
     }
@@ -561,6 +590,346 @@ class GeekDailyApp {
             .filter(paragraph => paragraph.length > 0)
             .map(paragraph => `<p>${this.escapeHtml(paragraph)}</p>`)
             .join('');
+    }
+
+    // Analytics相关方法
+
+    /**
+     * 加载数据分析
+     */
+    async loadAnalyticsData() {
+        const daysSelect = document.getElementById('analytics-days');
+        if (!daysSelect) {
+            console.error('Analytics days selector not found');
+            return;
+        }
+        
+        const days = parseInt(daysSelect.value);
+        console.log('Loading analytics data for', days, 'days');
+        
+        // 并行加载所有分析数据
+        const analysisPromises = [
+            this.loadTrendsAnalysis(days),
+            this.loadAuthorsAnalysis(days),
+            this.loadQualityAnalysis(),
+            this.loadTagsAnalysis(days),
+            this.loadPublishingAnalysis(days),
+            this.loadComprehensiveReport(days)
+        ];
+
+        // 等待所有分析完成
+        try {
+            const results = await Promise.allSettled(analysisPromises);
+            console.log('Analytics data loading completed', results);
+            
+            // 检查每个结果
+            results.forEach((result, index) => {
+                if (result.status === 'rejected') {
+                    console.error(`Analytics module ${index} failed:`, result.reason);
+                }
+            });
+        } catch (error) {
+            console.error('Analytics loading error:', error);
+        }
+    }
+
+    /**
+     * 加载技术趋势分析
+     */
+    async loadTrendsAnalysis(days) {
+        console.log('Loading trends analysis for', days, 'days');
+        
+        const statusEl = document.getElementById('trends-status');
+        const contentEl = document.getElementById('trends-content');
+        
+        if (!statusEl || !contentEl) {
+            console.error('Trends analysis DOM elements not found:', { statusEl, contentEl });
+            return;
+        }
+        
+        try {
+            console.log('Setting loading status...');
+            statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 分析中...';
+            statusEl.className = 'module-status';
+            
+            console.log('Fetching technology trends from API...');
+            const data = await apiClient.getTechnologyTrends(days);
+            console.log('Trends data received:', data);
+            
+            console.log('Setting success status...');
+            statusEl.innerHTML = '<i class="fas fa-check"></i> 分析完成';
+            statusEl.className = 'module-status success';
+            
+            contentEl.innerHTML = `
+                <div class="trends-summary">
+                    <p>📄 分析文章: <strong>${data.total_articles}</strong> 篇</p>
+                    <p>🏷️ 发现关键词: <strong>${data.total_keywords}</strong> 个</p>
+                </div>
+                <div class="trends-list">
+                    ${data.top_trends.slice(0, 10).map((trend, index) => `
+                        <div class="trend-item">
+                            <span class="trend-name">${index + 1}. ${trend.keyword}</span>
+                            <div class="trend-stats">
+                                <span>${trend.count} 次</span>
+                                <span>${trend.percentage}%</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+        } catch (error) {
+            statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 分析失败';
+            statusEl.className = 'module-status error';
+            contentEl.innerHTML = `<div class="error-message">分析失败: ${error.message}</div>`;
+        }
+    }
+
+    /**
+     * 加载作者活跃度分析
+     */
+    async loadAuthorsAnalysis(days) {
+        const statusEl = document.getElementById('authors-status');
+        const contentEl = document.getElementById('authors-content');
+        
+        try {
+            statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 分析中...';
+            statusEl.className = 'module-status';
+            
+            const data = await apiClient.getAuthorActivity(days);
+            
+            statusEl.innerHTML = '<i class="fas fa-check"></i> 分析完成';
+            statusEl.className = 'module-status success';
+            
+            contentEl.innerHTML = `
+                <div class="authors-summary">
+                    <p>👨‍💻 活跃作者: <strong>${data.total_authors}</strong> 人</p>
+                    <p>📄 分析文章: <strong>${data.total_articles}</strong> 篇</p>
+                </div>
+                <div class="authors-list">
+                    ${data.top_authors.slice(0, 8).map((author, index) => `
+                        <div class="author-item">
+                            <span class="author-name">${index + 1}. ${author.author}</span>
+                            <div class="author-stats">
+                                <span>${author.article_count} 篇</span>
+                                <span>影响力: ${author.influence_score}</span>
+                                <span>日均: ${author.productivity}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+        } catch (error) {
+            statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 分析失败';
+            statusEl.className = 'module-status error';
+            contentEl.innerHTML = `<div class="error-message">分析失败: ${error.message}</div>`;
+        }
+    }
+
+    /**
+     * 加载内容质量分析
+     */
+    async loadQualityAnalysis() {
+        const statusEl = document.getElementById('quality-status');
+        const contentEl = document.getElementById('quality-content');
+        
+        try {
+            statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 评估中...';
+            statusEl.className = 'module-status';
+            
+            const data = await apiClient.evaluateContentQuality(50); // 限制50篇文章
+            
+            statusEl.innerHTML = '<i class="fas fa-check"></i> 评估完成';
+            statusEl.className = 'module-status success';
+            
+            const summary = data.summary;
+            const qualityDist = summary.quality_distribution;
+            
+            contentEl.innerHTML = `
+                <div class="quality-overview">
+                    <div class="quality-grade grade-a">
+                        <h4>${qualityDist.A}</h4>
+                        <p>A级 (优秀)</p>
+                    </div>
+                    <div class="quality-grade grade-b">
+                        <h4>${qualityDist.B}</h4>
+                        <p>B级 (良好)</p>
+                    </div>
+                    <div class="quality-grade grade-c">
+                        <h4>${qualityDist.C}</h4>
+                        <p>C级 (一般)</p>
+                    </div>
+                    <div class="quality-grade grade-d">
+                        <h4>${qualityDist.D}</h4>
+                        <p>D级 (待改进)</p>
+                    </div>
+                </div>
+                <div class="quality-metrics">
+                    <div class="metric-item">
+                        <span class="metric-name">高质量率</span>
+                        <span class="metric-value">${summary.quality_insights.high_quality_rate}%</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-name">平均字数</span>
+                        <span class="metric-value">${summary.quality_insights.average_word_count}</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-name">平均阅读时间</span>
+                        <span class="metric-value">${summary.quality_insights.average_reading_time}分钟</span>
+                    </div>
+                </div>
+            `;
+            
+        } catch (error) {
+            statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 评估失败';
+            statusEl.className = 'module-status error';
+            contentEl.innerHTML = `<div class="error-message">评估失败: ${error.message}</div>`;
+        }
+    }
+
+    /**
+     * 加载标签分析
+     */
+    async loadTagsAnalysis(days) {
+        const statusEl = document.getElementById('tags-status');
+        const contentEl = document.getElementById('tags-content');
+        
+        try {
+            statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 分析中...';
+            statusEl.className = 'module-status';
+            
+            const data = await apiClient.getTagTrends(days);
+            
+            statusEl.innerHTML = '<i class="fas fa-check"></i> 分析完成';
+            statusEl.className = 'module-status success';
+            
+            const summary = data.summary;
+            
+            contentEl.innerHTML = `
+                <div class="tags-summary">
+                    <p>🏷️ 独特标签: <strong>${summary.total_unique_tags}</strong> 个</p>
+                    <p>📊 平均每篇: <strong>${summary.average_tags_per_article}</strong> 个标签</p>
+                </div>
+                <div class="tags-list">
+                    ${Object.entries(data.trending_tags).map(([category, trends]) => 
+                        trends.slice(0, 3).map(trend => `
+                            <div class="tag-item">
+                                <span class="tag-name">${category}: ${trend.tag}</span>
+                                <div class="tag-stats">
+                                    <span>${trend.count} 次</span>
+                                    <span>${trend.percentage}%</span>
+                                </div>
+                            </div>
+                        `).join('')
+                    ).join('')}
+                </div>
+            `;
+            
+        } catch (error) {
+            statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 分析失败';
+            statusEl.className = 'module-status error';
+            contentEl.innerHTML = `<div class="error-message">分析失败: ${error.message}</div>`;
+        }
+    }
+
+    /**
+     * 加载发布模式分析
+     */
+    async loadPublishingAnalysis(days) {
+        const statusEl = document.getElementById('publishing-status');
+        const contentEl = document.getElementById('publishing-content');
+        
+        try {
+            statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 分析中...';
+            statusEl.className = 'module-status';
+            
+            const data = await apiClient.getPublicationPatterns(days);
+            
+            statusEl.innerHTML = '<i class="fas fa-check"></i> 分析完成';
+            statusEl.className = 'module-status success';
+            
+            const dailyStats = data.daily_statistics;
+            const temporal = data.temporal_patterns;
+            
+            contentEl.innerHTML = `
+                <div class="publishing-stats">
+                    <div class="stat-card">
+                        <h4>${dailyStats.average}</h4>
+                        <p>日均发布</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>${dailyStats.maximum}</h4>
+                        <p>最高单日</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>${temporal.most_active_hour.hour}:00</h4>
+                        <p>最活跃时段</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>${data.distribution_summary.coverage_rate}%</h4>
+                        <p>覆盖率</p>
+                    </div>
+                </div>
+            `;
+            
+        } catch (error) {
+            statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 分析失败';
+            statusEl.className = 'module-status error';
+            contentEl.innerHTML = `<div class="error-message">分析失败: ${error.message}</div>`;
+        }
+    }
+
+    /**
+     * 加载综合报告
+     */
+    async loadComprehensiveReport(days) {
+        const statusEl = document.getElementById('report-status');
+        const contentEl = document.getElementById('report-content');
+        
+        try {
+            statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 生成中...';
+            statusEl.className = 'module-status';
+            
+            const data = await apiClient.getComprehensiveReport(days);
+            
+            statusEl.innerHTML = '<i class="fas fa-check"></i> 生成完成';
+            statusEl.className = 'module-status success';
+            
+            const summary = data.summary;
+            
+            contentEl.innerHTML = `
+                <div class="comprehensive-summary">
+                    <div class="summary-item">
+                        <h4>${summary.total_articles_analyzed}</h4>
+                        <p>分析文章总数</p>
+                    </div>
+                    <div class="summary-item">
+                        <h4>${summary.total_authors}</h4>
+                        <p>活跃作者数量</p>
+                    </div>
+                    <div class="summary-item">
+                        <h4>${summary.daily_average}</h4>
+                        <p>日均发布量</p>
+                    </div>
+                </div>
+                <div class="report-highlights">
+                    <div class="highlight-item">
+                        <h4>🔥 最热门技术</h4>
+                        <p>${summary.most_discussed_tech}</p>
+                    </div>
+                    <div class="highlight-item">
+                        <h4>🏆 最高产作者</h4>
+                        <p>${summary.most_productive_author}</p>
+                    </div>
+                </div>
+            `;
+            
+        } catch (error) {
+            statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 生成失败';
+            statusEl.className = 'module-status error';
+            contentEl.innerHTML = `<div class="error-message">报告生成失败: ${error.message}</div>`;
+        }
     }
 }
 

@@ -14,6 +14,9 @@ from storage.models import CrawlJob
 from proxy.manager import ProxyManager
 from utils.logger import logger
 from utils.config import settings
+from analytics.trend_analyzer import TrendAnalyzer
+from analytics.tag_extractor import TagExtractor
+from analytics.content_evaluator import ContentEvaluator
 
 
 def _is_error_url(url: str) -> bool:
@@ -2567,6 +2570,253 @@ async def export_articles(account_name: Optional[str] = None, format_type: str =
         db.close()
 
 
+async def handle_analytics_command(args):
+    """处理analytics相关命令"""
+    
+    def save_results_if_needed(results, output_file, description):
+        """如果指定了输出文件，保存结果"""
+        if output_file:
+            os.makedirs(os.path.dirname(output_file) if os.path.dirname(output_file) else 'data', exist_ok=True)
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(results, f, ensure_ascii=False, indent=2, default=str)
+            print(f"📄 {description}结果已保存到: {output_file}")
+    
+    try:
+        if args.analytics_command == 'trends':
+            print(f"🔍 分析最近 {args.days} 天的技术趋势...")
+            analyzer = TrendAnalyzer()
+            results = analyzer.analyze_technology_trends(args.days)
+            
+            if "error" not in results:
+                print(f"\n📊 技术趋势分析结果 (最近 {args.days} 天)")
+                print("=" * 60)
+                print(f"📄 分析文章数: {results['total_articles']}")
+                print(f"🏷️  发现关键词: {results['total_keywords']}")
+                print(f"🔝 热门技术趋势 (前10名):")
+                
+                for i, trend in enumerate(results['top_trends'][:10], 1):
+                    print(f"  {i:2d}. {trend['keyword']:<20} - {trend['count']:3d} 次 ({trend['percentage']:5.1f}%)")
+                
+                save_results_if_needed(results, args.output, "技术趋势分析")
+            else:
+                print(f"❌ 分析失败: {results['error']}")
+        
+        elif args.analytics_command == 'authors':
+            print(f"👥 分析最近 {args.days} 天的作者活跃度...")
+            analyzer = TrendAnalyzer()
+            results = analyzer.analyze_author_activity(args.days)
+            
+            if "error" not in results:
+                print(f"\n📊 作者活跃度分析结果 (最近 {args.days} 天)")
+                print("=" * 60)
+                print(f"👨‍💻 活跃作者数: {results['total_authors']}")
+                print(f"📄 分析文章数: {results['total_articles']}")
+                print(f"🏆 影响力排行榜 (前10名):")
+                
+                for i, author in enumerate(results['top_authors'][:10], 1):
+                    print(f"  {i:2d}. {author['author']:<20} - {author['article_count']:2d} 篇 "
+                          f"(影响力: {author['influence_score']:5.1f}, 日均: {author['productivity']:4.2f})")
+                    print(f"      关键词: {', '.join(author['top_keywords'])}")
+                
+                print(f"\n📈 作者分布:")
+                dist = results['author_distribution']
+                print(f"  • 高产作者 (≥5篇): {dist['highly_active']} 人")
+                print(f"  • 中产作者 (2-4篇): {dist['moderately_active']} 人")
+                print(f"  • 偶发作者 (1篇): {dist['occasionally_active']} 人")
+                
+                save_results_if_needed(results, args.output, "作者活跃度分析")
+            else:
+                print(f"❌ 分析失败: {results['error']}")
+        
+        elif args.analytics_command == 'publishing':
+            print(f"📅 分析最近 {args.days} 天的发布模式...")
+            analyzer = TrendAnalyzer()
+            results = analyzer.analyze_publication_patterns(args.days)
+            
+            if "error" not in results:
+                print(f"\n📊 发布模式分析结果 (最近 {args.days} 天)")
+                print("=" * 60)
+                print(f"📄 分析文章数: {results['total_articles']}")
+                
+                daily_stats = results['daily_statistics']
+                print(f"📈 日发布统计:")
+                print(f"  • 日均发布: {daily_stats['average']} 篇")
+                print(f"  • 最高单日: {daily_stats['maximum']} 篇")
+                print(f"  • 最低单日: {daily_stats['minimum']} 篇")
+                print(f"  • 最活跃日: {daily_stats['most_active_day']['date']} ({daily_stats['most_active_day']['count']} 篇)")
+                
+                temporal = results['temporal_patterns']
+                print(f"⏰ 时间模式:")
+                print(f"  • 最活跃时段: {temporal['most_active_hour']['hour']:02d}:00 ({temporal['most_active_hour']['count']} 篇)")
+                print(f"  • 最活跃月份: {temporal['most_active_month']['month']} ({temporal['most_active_month']['count']} 篇)")
+                
+                summary = results['distribution_summary']
+                print(f"📊 覆盖统计:")
+                print(f"  • 有文章的天数: {summary['days_with_articles']} 天")
+                print(f"  • 活跃周数: {summary['active_weeks']} 周")
+                print(f"  • 覆盖率: {summary['coverage_rate']}%")
+                
+                save_results_if_needed(results, args.output, "发布模式分析")
+            else:
+                print(f"❌ 分析失败: {results['error']}")
+        
+        elif args.analytics_command == 'report':
+            print(f"📋 生成综合数据分析报告 (最近 {args.days} 天)...")
+            analyzer = TrendAnalyzer()
+            results = analyzer.get_comprehensive_trends(args.days)
+            
+            if "error" not in results:
+                summary = results['summary']
+                print(f"\n📊 综合数据分析报告")
+                print("=" * 60)
+                print(f"📄 分析文章总数: {summary['total_articles_analyzed']}")
+                print(f"👥 活跃作者数量: {summary['total_authors']}")
+                print(f"🔥 最热门技术: {summary['most_discussed_tech']}")
+                print(f"🏆 最高产作者: {summary['most_productive_author']}")
+                print(f"📈 日均发布量: {summary['daily_average']}")
+                
+                print(f"\n💡 详细分析数据已包含在导出结果中")
+                save_results_if_needed(results, args.output, "综合分析报告")
+            else:
+                print(f"❌ 分析失败: {results['error']}")
+        
+        elif args.analytics_command == 'tags':
+            if args.tag_command == 'extract':
+                print(f"🏷️  开始智能标签提取...")
+                if args.limit:
+                    print(f"📄 处理文章数限制: {args.limit}")
+                
+                extractor = TagExtractor()
+                results = extractor.batch_tag_articles(limit=args.limit)
+                
+                if "error" not in results:
+                    summary = results['summary']
+                    print(f"\n📊 标签提取结果")
+                    print("=" * 60)
+                    print(f"📄 处理文章数: {summary['total_articles_processed']}")
+                    print(f"✅ 成功标记数: {summary['successfully_tagged']}")
+                    
+                    print(f"\n🏷️  热门标签分类:")
+                    for category, tags in summary['most_common_tags'].items():
+                        if tags:
+                            print(f"  {category}:")
+                            for tag, count in list(tags.items())[:5]:
+                                print(f"    • {tag}: {count} 次")
+                    
+                    save_results_if_needed(results, args.output, "标签提取")
+                else:
+                    print(f"❌ 标签提取失败: {results['error']}")
+            
+            elif args.tag_command == 'trends':
+                print(f"📈 分析最近 {args.days} 天的标签趋势...")
+                extractor = TagExtractor()
+                results = extractor.analyze_tag_trends(args.days)
+                
+                if "error" not in results:
+                    print(f"\n📊 标签趋势分析结果 (最近 {args.days} 天)")
+                    print("=" * 60)
+                    print(f"📄 分析文章数: {results['total_articles']}")
+                    
+                    summary = results['summary']
+                    print(f"🔥 最热门标签类别: {summary['most_popular_category']}")
+                    print(f"🏷️  独特标签总数: {summary['total_unique_tags']}")
+                    print(f"📊 平均每篇标签: {summary['average_tags_per_article']}")
+                    
+                    print(f"\n📈 热门标签分布:")
+                    for category, trends in results['trending_tags'].items():
+                        if trends:
+                            print(f"  {category}:")
+                            for trend in trends[:3]:
+                                print(f"    • {trend['tag']}: {trend['count']} 次 ({trend['percentage']}%)")
+                    
+                    save_results_if_needed(results, args.output, "标签趋势分析")
+                else:
+                    print(f"❌ 标签趋势分析失败: {results['error']}")
+            
+            else:
+                print("❌ 请指定标签子命令: extract 或 trends")
+        
+        elif args.analytics_command == 'quality':
+            if args.quality_command == 'evaluate':
+                print(f"📝 开始内容质量评估...")
+                if args.limit:
+                    print(f"📄 评估文章数限制: {args.limit}")
+                
+                evaluator = ContentEvaluator()
+                results = evaluator.batch_evaluate_quality(limit=args.limit)
+                
+                if "error" not in results:
+                    summary = results['summary']
+                    print(f"\n📊 内容质量评估结果")
+                    print("=" * 60)
+                    print(f"📄 评估文章数: {summary['successfully_evaluated']}")
+                    
+                    quality_dist = summary['quality_distribution']
+                    print(f"🏆 质量等级分布:")
+                    print(f"  • A级 (优秀): {quality_dist['A']} 篇")
+                    print(f"  • B级 (良好): {quality_dist['B']} 篇")
+                    print(f"  • C级 (一般): {quality_dist['C']} 篇")
+                    print(f"  • D级 (待改进): {quality_dist['D']} 篇")
+                    
+                    insights = summary['quality_insights']
+                    print(f"\n📈 质量洞察:")
+                    print(f"  • 高质量率: {insights['high_quality_rate']}%")
+                    print(f"  • 需改进率: {insights['needs_improvement_rate']}%")
+                    print(f"  • 平均字数: {insights['average_word_count']} 字")
+                    print(f"  • 平均阅读时间: {insights['average_reading_time']} 分钟")
+                    
+                    avg_metrics = summary['average_metrics']
+                    print(f"\n📊 平均质量指标:")
+                    print(f"  • 综合评分: {avg_metrics['overall']:.3f}")
+                    print(f"  • 原创性: {avg_metrics['originality']:.3f}")
+                    print(f"  • 技术深度: {avg_metrics['technical_depth']:.3f}")
+                    print(f"  • 可读性: {avg_metrics['readability']:.3f}")
+                    print(f"  • 结构化: {avg_metrics['structure']:.3f}")
+                    
+                    save_results_if_needed(results, args.output, "内容质量评估")
+                else:
+                    print(f"❌ 质量评估失败: {results['error']}")
+            
+            elif args.quality_command == 'insights':
+                print(f"💡 生成内容质量洞察报告...")
+                evaluator = ContentEvaluator()
+                results = evaluator.get_quality_insights(min_quality_score=args.min_score)
+                
+                if "error" not in results:
+                    print(f"\n📊 内容质量洞察报告")
+                    print("=" * 60)
+                    
+                    if 'quality_insights' in results:
+                        insights = results['quality_insights']
+                        if 'high_quality_characteristics' in insights:
+                            chars = insights['high_quality_characteristics']
+                            print(f"🏆 高质量文章特征 (≥{args.min_score} 分):")
+                            print(f"  • 样本数量: {chars['sample_count']} 篇")
+                            print(f"  • 平均字数: {chars['average_word_count']} 字")
+                            print(f"  • 共同特征:")
+                            for pattern in chars.get('common_patterns', []):
+                                print(f"    - {pattern}")
+                        
+                        if 'improvement_recommendations' in insights:
+                            print(f"\n💡 改进建议:")
+                            for rec in insights['improvement_recommendations']:
+                                print(f"  • {rec}")
+                    
+                    save_results_if_needed(results, args.output, "质量洞察报告")
+                else:
+                    print(f"❌ 质量洞察分析失败: {results['error']}")
+            
+            else:
+                print("❌ 请指定质量分析子命令: evaluate 或 insights")
+        
+        else:
+            print("❌ 请指定analytics子命令: trends, authors, publishing, report, tags, 或 quality")
+    
+    except Exception as e:
+        logger.error(f"Analytics命令执行失败: {str(e)}")
+        print(f"❌ 执行失败: {str(e)}")
+
+
 def main():
     """Main entry point"""
     parser = argparse.ArgumentParser(description="WeChat Public Account Crawler")
@@ -2695,6 +2945,58 @@ def main():
     delete_parser.add_argument('--url-pattern', help='Delete articles with URL containing pattern')
     delete_parser.add_argument('--force', action='store_true', help='Skip confirmation prompt')
     
+    # Analytics commands
+    analytics_parser = subparsers.add_parser('analytics', help='Data analytics and insights')
+    analytics_subparsers = analytics_parser.add_subparsers(dest='analytics_command', help='Analytics commands')
+    
+    # Trend analysis command
+    trend_parser = analytics_subparsers.add_parser('trends', help='Analyze technology trends')
+    trend_parser.add_argument('--days', type=int, default=30, help='Analysis period in days (default: 30)')
+    trend_parser.add_argument('--output', help='Save results to JSON file')
+    
+    # Author activity command
+    author_parser = analytics_subparsers.add_parser('authors', help='Analyze author activity and influence')
+    author_parser.add_argument('--days', type=int, default=30, help='Analysis period in days (default: 30)')
+    author_parser.add_argument('--output', help='Save results to JSON file')
+    
+    # Publication patterns command
+    publish_parser = analytics_subparsers.add_parser('publishing', help='Analyze publication patterns and frequency')
+    publish_parser.add_argument('--days', type=int, default=90, help='Analysis period in days (default: 90)')
+    publish_parser.add_argument('--output', help='Save results to JSON file')
+    
+    # Comprehensive report command
+    report_parser = analytics_subparsers.add_parser('report', help='Generate comprehensive analytics report')
+    report_parser.add_argument('--days', type=int, default=30, help='Analysis period in days (default: 30)')
+    report_parser.add_argument('--output', help='Save report to JSON file')
+    
+    # Tag analysis command
+    tag_parser = analytics_subparsers.add_parser('tags', help='Intelligent tagging and tag analysis')
+    tag_subparsers = tag_parser.add_subparsers(dest='tag_command', help='Tag commands')
+    
+    # Extract tags command
+    extract_tags_parser = tag_subparsers.add_parser('extract', help='Extract tags from articles')
+    extract_tags_parser.add_argument('--limit', type=int, help='Limit number of articles to process')
+    extract_tags_parser.add_argument('--output', help='Save results to JSON file')
+    
+    # Tag trends command
+    tag_trends_parser = tag_subparsers.add_parser('trends', help='Analyze tag trends')
+    tag_trends_parser.add_argument('--days', type=int, default=30, help='Analysis period in days (default: 30)')
+    tag_trends_parser.add_argument('--output', help='Save results to JSON file')
+    
+    # Quality analysis command
+    quality_parser = analytics_subparsers.add_parser('quality', help='Content quality assessment')
+    quality_subparsers = quality_parser.add_subparsers(dest='quality_command', help='Quality commands')
+    
+    # Evaluate quality command
+    eval_quality_parser = quality_subparsers.add_parser('evaluate', help='Evaluate content quality')
+    eval_quality_parser.add_argument('--limit', type=int, help='Limit number of articles to evaluate')
+    eval_quality_parser.add_argument('--output', help='Save results to JSON file')
+    
+    # Quality insights command
+    insights_parser = quality_subparsers.add_parser('insights', help='Get quality insights and recommendations')
+    insights_parser.add_argument('--min-score', type=float, default=0.7, help='Minimum quality score for high-quality analysis (default: 0.7)')
+    insights_parser.add_argument('--output', help='Save results to JSON file')
+    
     args = parser.parse_args()
     
     if args.command == 'crawl':
@@ -2804,6 +3106,8 @@ def main():
             url_pattern=args.url_pattern,
             confirm=not args.force
         ))
+    elif args.command == 'analytics':
+        asyncio.run(handle_analytics_command(args))
     else:
         parser.print_help()
 

@@ -20,6 +20,7 @@ class ApiClient {
    */
   async request(endpoint, options = {}) {
     const url = `${this.baseUrl}${endpoint}`;
+    console.log('ApiClient.request called:', { url, options });
 
     try {
       const response = await fetch(url, {
@@ -30,11 +31,14 @@ class ApiClient {
         ...options,
       });
 
+      console.log('Response received:', { status: response.status, ok: response.ok });
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (!data.success) {
         throw new Error(data.message || "API请求失败");
@@ -157,6 +161,69 @@ class ApiClient {
   async getRecentArticles(limit = 6) {
     const response = await this.getArticles({ limit });
     return response.articles;
+  }
+
+  // Analytics API Methods
+
+  /**
+   * 获取技术趋势分析
+   */
+  async getTechnologyTrends(days = 30) {
+    console.log('ApiClient.getTechnologyTrends called with days:', days);
+    const result = await this.request(`/analytics/trends?days=${days}`);
+    console.log('ApiClient.getTechnologyTrends result:', result);
+    return result;
+  }
+
+  /**
+   * 获取作者活跃度分析
+   */
+  async getAuthorActivity(days = 30) {
+    return await this.request(`/analytics/authors?days=${days}`);
+  }
+
+  /**
+   * 获取发布模式分析
+   */
+  async getPublicationPatterns(days = 90) {
+    return await this.request(`/analytics/publishing?days=${days}`);
+  }
+
+  /**
+   * 获取综合分析报告
+   */
+  async getComprehensiveReport(days = 30) {
+    return await this.request(`/analytics/report?days=${days}`);
+  }
+
+  /**
+   * 提取文章标签
+   */
+  async extractTags(limit = null) {
+    const params = limit ? `?limit=${limit}` : '';
+    return await this.request(`/analytics/tags/extract${params}`);
+  }
+
+  /**
+   * 获取标签趋势分析
+   */
+  async getTagTrends(days = 30) {
+    return await this.request(`/analytics/tags/trends?days=${days}`);
+  }
+
+  /**
+   * 评估内容质量
+   */
+  async evaluateContentQuality(limit = null) {
+    const params = limit ? `?limit=${limit}` : '';
+    return await this.request(`/analytics/quality/evaluate${params}`);
+  }
+
+  /**
+   * 获取质量洞察报告
+   */
+  async getQualityInsights(minScore = 0.7) {
+    return await this.request(`/analytics/quality/insights?min_score=${minScore}`);
   }
 }
 

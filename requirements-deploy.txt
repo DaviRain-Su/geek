@@ -1,0 +1,12 @@
+# 部署专用依赖文件（去除爬虫相关依赖）
+fastapi==0.104.1
+uvicorn==0.24.0
+sqlalchemy==2.0.23
+pydantic==2.5.2
+pydantic-settings==2.1.0
+requests==2.31.0
+python-dotenv==1.0.0
+loguru==0.7.2
+
+# 如果需要MongoDB支持，取消注释
+# pymongo==4.6.0

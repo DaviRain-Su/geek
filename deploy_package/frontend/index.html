@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web3极客日报 - 文章浏览器</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 页面头部 -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-newspaper"></i>
+                    <h1>Web3极客日报</h1>
+                </div>
+                <nav class="nav">
+                    <a href="#home" class="nav-link active" data-section="home">
+                        <i class="fas fa-home"></i>
+                        首页
+                    </a>
+                    <a href="#articles" class="nav-link" data-section="articles">
+                        <i class="fas fa-newspaper"></i>
+                        文章列表
+                    </a>
+                    <a href="#stats" class="nav-link" data-section="stats">
+                        <i class="fas fa-chart-bar"></i>
+                        统计信息
+                    </a>
+                    <a href="#about" class="nav-link" data-section="about">
+                        <i class="fas fa-info-circle"></i>
+                        关于
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容区域 -->
+    <main class="main">
+        <div class="container">
+            <!-- 首页部分 -->
+            <section id="home" class="section active">
+                <div class="hero">
+                    <h2>欢迎来到Web3极客日报</h2>
+                    <p>探索最新的Web3技术、区块链项目和加密货币资讯</p>
+                    
+                    <!-- 搜索框 -->
+                    <div class="search-container">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="search-input" placeholder="搜索文章标题、作者或内容...">
+                            <button id="search-btn">搜索</button>
+                        </div>
+                    </div>
+
+                    <!-- 快速统计 -->
+                    <div class="quick-stats">
+                        <div class="stat-card">
+                            <i class="fas fa-newspaper"></i>
+                            <div class="stat-content">
+                                <h3 id="total-articles">-</h3>
+                                <p>总文章数</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-users"></i>
+                            <div class="stat-content">
+                                <h3 id="total-authors">-</h3>
+                                <p>作者数量</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-building"></i>
+                            <div class="stat-content">
+                                <h3 id="total-accounts">-</h3>
+                                <p>账号数量</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 最新文章预览 -->
+                    <div class="recent-articles">
+                        <h3>📖 最新文章</h3>
+                        <div id="recent-articles-list" class="article-grid">
+                            <!-- 最新文章将通过JavaScript动态加载 -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 文章列表部分 -->
+            <section id="articles" class="section">
+                <div class="articles-header">
+                    <h2>📰 文章列表</h2>
+                    
+                    <!-- 过滤器 -->
+                    <div class="filters">
+                        <div class="filter-group">
+                            <label for="account-filter">账号筛选:</label>
+                            <select id="account-filter">
+                                <option value="">所有账号</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="author-filter">作者筛选:</label>
+                            <select id="author-filter">
+                                <option value="">所有作者</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="sort-filter">排序:</label>
+                            <select id="sort-filter">
+                                <option value="newest">最新发布</option>
+                                <option value="oldest">最早发布</option>
+                                <option value="title">标题排序</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 文章列表 -->
+                <div id="articles-list" class="article-list">
+                    <!-- 文章将通过JavaScript动态加载 -->
+                </div>
+
+                <!-- 分页 -->
+                <div id="pagination" class="pagination">
+                    <!-- 分页按钮将通过JavaScript动态生成 -->
+                </div>
+
+                <!-- 加载状态 -->
+                <div id="loading" class="loading hidden">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>加载中...</p>
+                </div>
+            </section>
+
+            <!-- 统计信息部分 -->
+            <section id="stats" class="section">
+                <h2>📊 数据统计</h2>
+                
+                <div class="stats-container">
+                    <!-- 概览统计 -->
+                    <div class="stats-overview">
+                        <h3>📈 数据概览</h3>
+                        <div id="stats-overview" class="overview-cards">
+                            <!-- 统计卡片将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+
+                    <!-- 热门账号 -->
+                    <div class="top-accounts">
+                        <h3>🏆 热门账号</h3>
+                        <div id="top-accounts-list" class="top-list">
+                            <!-- 热门账号列表将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+
+                    <!-- 热门作者 -->
+                    <div class="top-authors">
+                        <h3>✍️ 热门作者</h3>
+                        <div id="top-authors-list" class="top-list">
+                            <!-- 热门作者列表将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 关于部分 -->
+            <section id="about" class="section">
+                <h2>ℹ️ 关于项目</h2>
+                <div class="about-content">
+                    <div class="about-card">
+                        <h3>🎯 项目简介</h3>
+                        <p>Web3极客日报是一个专注于Web3技术、区块链项目和加密货币领域的资讯聚合平台。我们收集、整理和展示最新的行业动态，为开发者和爱好者提供有价值的技术资讯。</p>
+                    </div>
+                    
+                    <div class="about-card">
+                        <h3>🛠️ 技术栈</h3>
+                        <ul>
+                            <li><strong>后端:</strong> Python + FastAPI + SQLAlchemy</li>
+                            <li><strong>数据库:</strong> SQLite</li>
+                            <li><strong>爬虫:</strong> Playwright + BeautifulSoup</li>
+                            <li><strong>前端:</strong> HTML5 + CSS3 + Vanilla JavaScript</li>
+                            <li><strong>API:</strong> RESTful API with JSON responses</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="about-card">
+                        <h3>📚 功能特性</h3>
+                        <ul>
+                            <li>🔍 智能搜索 - 支持标题、作者、内容全文搜索</li>
+                            <li>📊 数据统计 - 提供详细的数据分析和可视化</li>
+                            <li>🏷️ 分类筛选 - 按账号、作者等维度筛选文章</li>
+                            <li>📱 响应式设计 - 完美适配桌面和移动设备</li>
+                            <li>⚡ 快速加载 - 优化的API接口和分页加载</li>
+                            <li>🎨 现代界面 - 简洁美观的用户界面设计</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="about-card">
+                        <h3>🔗 API接口</h3>
+                        <p>本项目提供完整的REST API接口，支持以下功能：</p>
+                        <ul>
+                            <li><code>GET /articles</code> - 获取文章列表</li>
+                            <li><code>GET /articles/{id}</code> - 获取文章详情</li>
+                            <li><code>GET /search</code> - 搜索文章</li>
+                            <li><code>GET /stats</code> - 获取统计信息</li>
+                            <li><code>GET /accounts</code> - 获取账号列表</li>
+                        </ul>
+                        <a href="http://127.0.0.1:8000/docs" target="_blank" class="api-link">
+                            <i class="fas fa-external-link-alt"></i>
+                            查看完整API文档
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- 文章详情模态框 -->
+    <div id="article-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">文章标题</h3>
+                <button id="modal-close" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="article-meta">
+                    <span id="modal-author">作者</span>
+                    <span id="modal-account">账号</span>
+                    <span id="modal-time">发布时间</span>
+                </div>
+                <div id="modal-content" class="article-content">
+                    <!-- 文章内容 -->
+                </div>
+                <div class="article-actions">
+                    <a id="modal-url" href="#" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-external-link-alt"></i>
+                        阅读原文
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Web3极客日报 - 探索Web3技术前沿</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

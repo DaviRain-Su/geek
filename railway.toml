@@ -1,0 +1,16 @@
+[build]
+builder = "NIXPACKS"
+buildCommand = "pip install -r requirements.txt"
+
+[deploy]
+startCommand = "python web_api.py --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+
+[environments.production]
+DATABASE_URL = "sqlite:///data/wechat_crawler.db"
+
+[environments.production.variables]
+PYTHONUNBUFFERED = "1"
+PORT = "8000"
